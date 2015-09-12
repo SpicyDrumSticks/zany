@@ -302,7 +302,8 @@ Value sendtoaddress(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 2 || params.size() > 5)
         throw runtime_error(
-            "sendtoaddress <okcashaddress> <amount> [narration] [comment] [comment-to]\n"
+            "sendtoaddress <okcashaddress> <amount> [comment] [comment-to] [narration]\n" // Exchanges use the comments internally...
+            "sendtoaddress <okcashaddress> <amount> [narration]\n"
             "<amount> is a real and is rounded to the nearest 0.000001"
             + HelpRequiringPassphrase());
 
@@ -790,7 +791,7 @@ Value addmultisigaddress(const Array& params, bool fHelp)
     {
         string msg = "addmultisigaddress <nrequired> <'[\"key\",\"key\"]'> [account]\n"
             "Add a nrequired-to-sign multisignature address to the wallet\"\n"
-            "each key is a okcash address or hex-encoded public key\n"
+            "each key is an okcash address or hex-encoded public key\n"
             "If [account] is specified, assign address to [account].";
         throw runtime_error(msg);
     }

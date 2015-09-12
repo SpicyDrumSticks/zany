@@ -238,7 +238,7 @@ void OptionsDialog::handleProxyIpValid(QValidatedLineEdit *object, bool fState)
     {
         disableSaveButtons();
         object->setValid(fProxyIpValid);
-        ui->statusLabel->setStyleSheet("QLabel { color: red; }");
+        ui->statusLabel->setStyleSheet("QLabel { color: orange; }");
         ui->statusLabel->setText(tr("The supplied proxy address is invalid."));
     }
 }

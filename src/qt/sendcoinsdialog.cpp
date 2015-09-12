@@ -37,7 +37,7 @@ SendCoinsDialog::SendCoinsDialog(QWidget *parent) :
 
 #if QT_VERSION >= 0x040700
     /* Do not move this to the XML file, Qt before 4.7 will choke on it */
-    ui->lineEditCoinControlChange->setPlaceholderText(tr("Enter a okcash address (e.g. SXywGBZBowrppUwwNUo1GCRDTibzJi7g2M)"));
+    ui->lineEditCoinControlChange->setPlaceholderText(tr("Enter an okcash address (e.g. PzjjetSdTwrppUwwNUo1GFHYTibzJi77jM)"));
 #endif
 
     addEntry();
@@ -466,7 +466,7 @@ void SendCoinsDialog::coinControlChangeEdited(const QString & text)
             ui->labelCoinControlChangeLabel->setText("");
         else if (!CBitcoinAddress(text.toStdString()).IsValid())
         {
-            ui->labelCoinControlChangeLabel->setStyleSheet("QLabel{color:red;}");
+            ui->labelCoinControlChangeLabel->setStyleSheet("QLabel{color:orange;}");
             ui->labelCoinControlChangeLabel->setText(tr("WARNING: Invalid okcash address"));
         }
         else
@@ -483,7 +483,7 @@ void SendCoinsDialog::coinControlChangeEdited(const QString & text)
                     ui->labelCoinControlChangeLabel->setText(tr("(no label)"));
                 else
                 {
-                    ui->labelCoinControlChangeLabel->setStyleSheet("QLabel{color:red;}");
+                    ui->labelCoinControlChangeLabel->setStyleSheet("QLabel{color:orange;}");
                     ui->labelCoinControlChangeLabel->setText(tr("WARNING: unknown change address"));
                 }
             }

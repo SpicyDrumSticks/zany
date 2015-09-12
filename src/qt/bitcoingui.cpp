@@ -78,8 +78,8 @@ text-align: left;\
 QToolButton {\
 min-width:180px;\
 background-color: transparent;\
-border: 1px solid #3A3939;\
-border-radius: 3px;\
+border: 1px solid #f7f7f7;\
+border-radius: 0px;\
 margin: 3px;\
 padding-left: 5px;\
 /*padding-right:50px;*/\
@@ -89,20 +89,20 @@ text-align: left;\
 padding-bottom:5px;\
 }\
 QToolButton:pressed {\
-background-color: #4A4949;\
-border: 1px solid silver;\
+background-color: #ffffff;\
+border: 1px solid #ffffff;\
 }\
 QToolButton:checked {\
-background-color: #777777;\
-border: 1px solid silver;\
+background-color: #ffffff;\
+border: 1px solid #ffffff;\
 }\
 QToolButton:hover {\
-background-color: #4A4949;\
-border: 1px solid gray;\
+background-color: #ffffff;\
+border: 1px solid #ffffff;\
 }"
 #define HORIZONTAL_TOOLBAR_STYLESHEET "QToolBar {\
-    border: 1px solid #393838;\
-    background: 1px solid #302F2F;\
+    border: 1px solid #f7f7f7;\
+    background: 1px solid #f7f7f7;\
     font-weight: bold;\
 }"
 
@@ -295,7 +295,7 @@ void BitcoinGUI::createActions()
     tabGroup->addAction(overviewAction);
 
     sendCoinsAction = new QAction(QIcon(":/icons/send"), tr("&Send coins"), this);
-    sendCoinsAction->setToolTip(tr("Send coins to a okcash address"));
+    sendCoinsAction->setToolTip(tr("Send coins to an okcash address"));
     sendCoinsAction->setCheckable(true);
     sendCoinsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_2));
     tabGroup->addAction(sendCoinsAction);
@@ -421,7 +421,7 @@ void BitcoinGUI::createMenuBar()
 void BitcoinGUI::createToolBars()
 {
     mainIcon = new QLabel (this);
-    mainIcon->setPixmap(QPixmap(":images/sdc-vertical"));
+    mainIcon->setPixmap(QPixmap(":images/ok-vertical"));
     mainIcon->show();
 
     mainToolbar = addToolBar(tr("Tabs toolbar"));
@@ -700,8 +700,7 @@ void BitcoinGUI::setNumBlocks(int count, int nTotalBlocks)
     else
     {
         tooltip = tr("Catching up...") + QString("<br>") + tooltip;
-        labelBlocksIcon->setMovie(syncIconMovie);
-        syncIconMovie->start();
+        labelBlocksIcon->setPixmap(QIcon(":/icons/notsynced").pixmap(STATUSBAR_ICONSIZE, STATUSBAR_ICONSIZE));
 
         overviewPage->showOutOfSyncWarning(true);
     }
@@ -963,14 +962,14 @@ void BitcoinGUI::mainToolbarOrientation(Qt::Orientation orientation)
 {
     if(orientation == Qt::Horizontal)
     {
-        mainIcon->setPixmap(QPixmap(":images/sdc-horizontal"));
+        mainIcon->setPixmap(QPixmap(":images/ok-vertical"));
         mainIcon->show();
         mainToolbar->setStyleSheet(HORIZONTAL_TOOLBAR_STYLESHEET);
         messageAction->setIconText(tr("&Messages"));
     }
     else
     {
-        mainIcon->setPixmap(QPixmap(":images/sdc-vertical"));
+        mainIcon->setPixmap(QPixmap(":images/ok-vertical"));
         mainIcon->show();
 
         mainToolbar->setStyleSheet(VERTICAL_TOOBAR_STYLESHEET);

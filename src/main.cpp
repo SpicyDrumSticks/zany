@@ -39,12 +39,12 @@ CBigNum bnProofOfWorkLimit(~uint256(0) >> 20);      // "standard" scrypt target 
 CBigNum bnProofOfStakeLimit(~uint256(0) >> 20);
 CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 16);
 
-unsigned int nTargetSpacing     = 60;               // 60 seconds
+unsigned int nTargetSpacing     = 69;               // 69 seconds
 unsigned int nStakeMinAge       = 8 * 60 * 60;      // 8 hours
 unsigned int nStakeMaxAge       = -1;               // unlimited
 unsigned int nModifierInterval  = 10 * 60;          // time to elapse before new modifier is computed
 
-int nCoinbaseMaturity = 500;
+int nCoinbaseMaturity = 59;
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 
@@ -508,7 +508,7 @@ bool CTransaction::CheckTransaction() const
 
     if (IsCoinBase())
     {
-        if (vin[0].scriptSig.size() < 2 || vin[0].scriptSig.size() > 100)
+        if (vin[0].scriptSig.size() < 2 || vin[0].scriptSig.size() > 300)
             return DoS(100, error("CTransaction::CheckTransaction() : coinbase script size is invalid"));
     }
     else
@@ -965,14 +965,17 @@ int64_t GetProofOfWorkReward(int nHeight, int64_t nFees)
 {
     int64_t nSubsidy = 0;
     
-    if (nHeight <= 0)
+	if (nHeight <= 0)
         nSubsidy = 0;
+	else
+    if (nHeight <= DEV_FUND_BLOCK)
+        nSubsidy = 2691000 * COIN;
     else
     if (nHeight <= LAST_FAIR_LAUNCH_BLOCK) 
         nSubsidy = 1 * COIN;
     else
     if (nHeight <= LAST_POW_BLOCK)
-        nSubsidy = 400 * COIN;
+        nSubsidy = 2000 * COIN;
 
     if (fDebug && GetBoolArg("-printcreation"))
         printf("GetProofOfWorkReward() : create=%s nSubsidy=%"PRId64"\n", FormatMoney(nSubsidy).c_str(), nSubsidy);
@@ -981,9 +984,18 @@ int64_t GetProofOfWorkReward(int nHeight, int64_t nFees)
 }
 
 // miner's coin stake reward based on coin age spent (coin-days)
-int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees)
+int64_t GetProofOfStakeReward(int nHeight, int64_t nCoinAge, int64_t nFees)
 {
-    int64_t nSubsidy = nCoinAge * COIN_YEAR_REWARD * 33 / (365 * 33 + 8);
+    int64_t nSubsidy = nCoinAge * KCOIN_YEAR_REWARD * 33 / (365 * 33 + 8);
+
+    if (nHeight <= FIRSY_BLOCK)
+        nSubsidy = nCoinAge * COIN_YEAR_REWARD * 33 / (365 * 33 + 8);
+    else
+	if (nHeight <= SECOY_BLOCK)
+        nSubsidy = nCoinAge * SCOIN_YEAR_REWARD * 33 / (365 * 33 + 8);
+    else	
+	if (nHeight <= THIRY_BLOCK)
+        nSubsidy = nCoinAge * CCOIN_YEAR_REWARD * 33 / (365 * 33 + 8);
 
     if (fDebug && GetBoolArg("-printcreation"))
         printf("GetProofOfStakeReward(): create=%s nCoinAge=%"PRId64"\n", FormatMoney(nSubsidy).c_str(), nCoinAge);
@@ -1519,7 +1531,7 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
         if (!vtx[1].GetCoinAge(txdb, nCoinAge))
             return error("ConnectBlock() : %s unable to get coin age for coinstake", vtx[1].GetHash().ToString().substr(0,10).c_str());
 
-        int64_t nCalculatedStakeReward = GetProofOfStakeReward(nCoinAge, nFees);
+        int64_t nCalculatedStakeReward = GetProofOfStakeReward(pindex->nHeight, nCoinAge, nFees);
 
         if (nStakeReward > nCalculatedStakeReward)
             return DoS(100, error("ConnectBlock() : coinstake pays too much(actual=%"PRId64" vs calculated=%"PRId64")", nStakeReward, nCalculatedStakeReward));
@@ -2411,10 +2423,10 @@ bool LoadBlockIndex(bool fAllowNew)
 
     if (fTestNet)
     {
-        pchMessageStart[0] = 0x07;
-        pchMessageStart[1] = 0x11;
-        pchMessageStart[2] = 0x05;
-        pchMessageStart[3] = 0x0b;
+        pchMessageStart[0] = 0x00;
+        pchMessageStart[1] = 0x09;
+        pchMessageStart[2] = 0x7a;
+        pchMessageStart[3] = 0x0f;
 
         bnProofOfWorkLimit = bnProofOfWorkLimitTestNet; // 16 bits PoW target limit for testnet
         nStakeMinAge = 1 * 60 * 60; // test net min age is 1 hour
@@ -2439,32 +2451,37 @@ bool LoadBlockIndex(bool fAllowNew)
         // Genesis block
 
         /* -- mainnet
-        block.nTime = 1405769613 
-        block.nNonce = 261836 
-        block.GetHash = 00000eca234f07edc98aaf3f2a7b7478dc58992a9cd439323d099c6a590ca2bb
-        hashMerkleRoot 26a3ff5d3dc46b091e7b58b6022982e6d27dff1bab3bd1da6beb4790983c87c4
-        CBlock(hash=00000eca234f07edc98aaf3f2a7b7478dc58992a9cd439323d099c6a590ca2bb, ver=1, hashPrevBlock=0000000000000000000000000000000000000000000000000000000000000000, hashMerkleRoot=26a3ff5d3dc46b091e7b58b6022982e6d27dff1bab3bd1da6beb4790983c87c4, nTime=1405769613, nBits=1e0fffff, nNonce=261836, vtx=1, vchBlockSig=)
-          Coinbase(hash=26a3ff5d3d, nTime=1405769613, ver=1, vin.size=1, vout.size=1, nLockTime=0)
-            CTxIn(COutPoint(0000000000, 4294967295), coinbase 00012a4c5e7777772e63727970746f636f696e736e6577732e636f6d2f6e6577732f6269746c6963656e73652d726567756c6174696f6e732d666f726b65642d6769746875622d626974636f696e2d636f6d6d756e6974792f323031342f30372f3139)
-            CTxOut(empty)
-          vMerkleTree: 26a3ff5d3d
+block.nTime = 1416737561
+block.nNonce = 672095
+block.GetHash = 0000046309984501e5e724498cddb4aff41a126927355f64b44f1b8bba4f447e
+0000046309984501e5e724498cddb4aff41a126927355f64b44f1b8bba4f447e
+0000000000000000000000000000000000000000000000000000000000000000
+eb465c4bc52c2730efca9ed897e1581f6266ba8d630e282b140d61a00e422108
+CBlock(hash=0000046309984501e5e724498cddb4aff41a126927355f64b44f1b8bba4f447e, ver=1, hashPrevBlock=0000000000000000000000000000000000000000000000000000000000000000, hashMerkleRoot=eb465c4bc52c2730efca9ed897e1581f6266ba8d630e282b140d61a00e422108, nTime=1416737561, nBits=1e0fffff, nNonce=672095, vtx=1, vchBlockSig=)
+  Coinbase(hash=eb465c4bc5, nTime=1416737561, ver=1, vin.size=1, vout.size=1, nLockTime=0)
+    CTxIn(COutPoint(0000000000, 4294967295), coinbase 00012a4c647777772e63727970746f636f696e736e6577732e636f6d2f6e79646673732d62656e2d6c6177736b792d72657665616c732d706c616e732d7472616e736974696f6e616c2d6269746c6963656e73652d6d6f6e6579323032302f323031342f31312f3033)
+    CTxOut(empty)
+  vMerkleTree: eb465c4bc5
+
         */
         
         /* -- testnet
-        block.nTime = 1405769613 
-        block.nNonce = 55887 
-        block.GetHash = 0000910a87c1385247edc82808ec498a2d738fea5f0d3f8801512d6b84ad6f72
-        hashMerkleRoot 26a3ff5d3dc46b091e7b58b6022982e6d27dff1bab3bd1da6beb4790983c87c4
-        CBlock(hash=0000910a87c1385247edc82808ec498a2d738fea5f0d3f8801512d6b84ad6f72, ver=1, hashPrevBlock=0000000000000000000000000000000000000000000000000000000000000000, hashMerkleRoot=26a3ff5d3dc46b091e7b58b6022982e6d27dff1bab3bd1da6beb4790983c87c4, nTime=1405769613, nBits=1f00ffff, nNonce=55887, vtx=1, vchBlockSig=)
-          Coinbase(hash=26a3ff5d3d, nTime=1405769613, ver=1, vin.size=1, vout.size=1, nLockTime=0)
-            CTxIn(COutPoint(0000000000, 4294967295), coinbase 00012a4c5e7777772e63727970746f636f696e736e6577732e636f6d2f6e6577732f6269746c6963656e73652d726567756c6174696f6e732d666f726b65642d6769746875622d626974636f696e2d636f6d6d756e6974792f323031342f30372f3139)
-            CTxOut(empty)
-          vMerkleTree: 26a3ff5d3d 
+block.nTime = 1416737561
+block.nNonce = 57136
+block.GetHash = 0000e3283629707a14a6c5f3297995095ac0e337b2af9bca1358d4788ed86169
+0000e3283629707a14a6c5f3297995095ac0e337b2af9bca1358d4788ed86169
+0000000000000000000000000000000000000000000000000000000000000000
+eb465c4bc52c2730efca9ed897e1581f6266ba8d630e282b140d61a00e422108
+CBlock(hash=0000e3283629707a14a6c5f3297995095ac0e337b2af9bca1358d4788ed86169, ver=1, hashPrevBlock=0000000000000000000000000000000000000000000000000000000000000000, hashMerkleRoot=eb465c4bc52c2730efca9ed897e1581f6266ba8d630e282b140d61a00e422108, nTime=1416737561, nBits=1f00ffff, nNonce=57136, vtx=1, vchBlockSig=)
+  Coinbase(hash=eb465c4bc5, nTime=1416737561, ver=1, vin.size=1, vout.size=1, nLockTime=0)
+    CTxIn(COutPoint(0000000000, 4294967295), coinbase 00012a4c647777772e63727970746f636f696e736e6577732e636f6d2f6e79646673732d62656e2d6c6177736b792d72657665616c732d706c616e732d7472616e736974696f6e616c2d6269746c6963656e73652d6d6f6e6579323032302f323031342f31312f3033)
+    CTxOut(empty)
+  vMerkleTree: eb465c4bc5
         */
 
-        const char* pszTimestamp = "www.cryptocoinsnews.com/news/bitlicense-regulations-forked-github-bitcoin-community/2014/07/19";
+        const char* pszTimestamp = "www.cryptocoinsnews.com/nydfss-ben-lawsky-reveals-plans-transitional-bitlicense-money2020/2014/11/03";
         CTransaction txNew;
-        txNew.nTime = 1405769613;
+        txNew.nTime = 1416737561;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
         txNew.vin[0].scriptSig = CScript() << 0 << CBigNum(42) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
@@ -2475,13 +2492,13 @@ bool LoadBlockIndex(bool fAllowNew)
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
-        block.nTime    = 1405769613;
+        block.nTime    = 1416737561;
         block.nBits    = bnProofOfWorkLimit.GetCompact();
-        block.nNonce   = !fTestNet ? 261836 : 55887;
+        block.nNonce   = !fTestNet ? 672095 : 57136;
         
-        
-        //// debug print
-        assert(block.hashMerkleRoot == uint256("0x26a3ff5d3dc46b091e7b58b6022982e6d27dff1bab3bd1da6beb4790983c87c4"));
+        //debug
+
+        assert(block.hashMerkleRoot == uint256("0xeb465c4bc52c2730efca9ed897e1581f6266ba8d630e282b140d61a00e422108"));
         block.print();
         assert(block.GetHash() == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet));
         assert(block.CheckBlock());
@@ -2499,7 +2516,7 @@ bool LoadBlockIndex(bool fAllowNew)
             return error("LoadBlockIndex() : failed to init sync checkpoint");
     }
 
-    string strPubKey = "";
+    string strPubKey = "047fe5a9d3237db22995178f767d8c428fad5ed4f9d8a5e6fd83f3b27ff747822fa2af30b9efd0a70a9f18b31742b12ff70e8d4390c0838f639de6d11f3dd0ae2a";
 
     // if checkpoint master key changed must reset sync-checkpoint
     if (!txdb.ReadCheckpointPubKey(strPubKey) || strPubKey != CSyncCheckpoint::strMasterPubKey)
@@ -2749,7 +2766,7 @@ bool static AlreadyHave(CTxDB& txdb, const CInv& inv)
 // The message start string is designed to be unlikely to occur in normal data.
 // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
 // a large 4-byte int at any alignment.
-unsigned char pchMessageStart[4] = { 0xfa, 0xf2, 0xef, 0xb4 };
+unsigned char pchMessageStart[4] = { 0x69, 0xf0, 0x0f, 0x69 };
 
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, int64_t nTimeReceived)
 {
@@ -3250,7 +3267,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         uint256 hashBlock = block.GetHash();
 
         printf("received block %s\n", hashBlock.ToString().substr(0,20).c_str());
-        // block.print();
+       // block.print();
 
         CInv inv(MSG_BLOCK, hashBlock);
         pfrom->AddInventoryKnown(inv);

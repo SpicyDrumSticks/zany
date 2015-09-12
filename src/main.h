@@ -25,8 +25,12 @@ class CInv;
 class CRequestTracker;
 class CNode;
 
-static const int LAST_POW_BLOCK = 31000;
-static const int LAST_FAIR_LAUNCH_BLOCK = 120;
+static const int THIRY_BLOCK = 1523771; // + 1 year blocks average
+static const int SECOY_BLOCK = 1022514; // + 1 year blocks average
+static const int FIRSY_BLOCK = 521257;  // 501257 blocks/year + 20000 blocks (15 days) first year
+static const int LAST_POW_BLOCK = 33186;
+static const int LAST_FAIR_LAUNCH_BLOCK = 30;
+static const int DEV_FUND_BLOCK = 1;
 
 static const unsigned int MAX_BLOCK_SIZE = 1000000;
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
@@ -35,16 +39,19 @@ static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
 static const unsigned int MAX_INV_SZ = 50000;
 static const int64_t MIN_TX_FEE = 10000;
 static const int64_t MIN_RELAY_TX_FEE = MIN_TX_FEE;
-static const int64_t MAX_MONEY = 2000000000 * COIN;
-static const int64_t COIN_YEAR_REWARD = 2 * CENT; // 2% per year
+static const int64_t MAX_MONEY = 105000000 * COIN;  //  105 million okcash Total
+static const int64_t COIN_YEAR_REWARD = 69 * CENT; // 69% 1st Year  
+static const int64_t SCOIN_YEAR_REWARD = 20 * CENT; // 20% 2nd Year
+static const int64_t CCOIN_YEAR_REWARD = 10 * CENT; // 10% 3rd Year
+static const int64_t KCOIN_YEAR_REWARD = 6 * CENT;  //   6% 4th Year and onwards
 
 inline bool MoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 // Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp.
 static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 
 
-static const uint256 hashGenesisBlock("0x00000eca234f07edc98aaf3f2a7b7478dc58992a9cd439323d099c6a590ca2bb");
-static const uint256 hashGenesisBlockTestNet("0x0000910a87c1385247edc82808ec498a2d738fea5f0d3f8801512d6b84ad6f72");
+static const uint256 hashGenesisBlock("0x0000046309984501e5e724498cddb4aff41a126927355f64b44f1b8bba4f447e");
+static const uint256 hashGenesisBlockTestNet("0x0000e3283629707a14a6c5f3297995095ac0e337b2af9bca1358d4788ed86169");
 
 
 inline int64_t PastDrift(int64_t nTime)   { return nTime - 10 * 60; } // up to 10 minutes from the past
@@ -109,7 +116,7 @@ bool LoadExternalBlockFile(FILE* fileIn);
 bool CheckProofOfWork(uint256 hash, unsigned int nBits);
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake);
 int64_t GetProofOfWorkReward(int nHeight, int64_t nFees);
-int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees);
+int64_t GetProofOfStakeReward(int nHeight, int64_t nCoinAge, int64_t nFees);
 unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
 unsigned int ComputeMinStake(unsigned int nBase, int64_t nTime, unsigned int nBlockTime);
 int GetNumBlocksOfPeers();
